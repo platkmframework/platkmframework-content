@@ -1,17 +1,20 @@
 /*******************************************************************************
- *   Copyright(c) 2023 the original author or authors.
- *  
- *   Licensed under the Apache License, Version 2.0 (the "License");
- *   you may not use this file except in compliance with the License.
- *   You may obtain a copy of the License at
- *  
- *        https://www.apache.org/licenses/LICENSE-2.0
- *  
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Copyright(c) 2023 the original author Eduardo Iglesias Taylor.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * 	 https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * Contributors:
+ * 	Eduardo Iglesias Taylor - initial API and implementation
  *******************************************************************************/
 package org.platkmframework.content.ioc;
     
@@ -20,12 +23,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import org.platkmframework.annotation.Controller;
 import org.platkmframework.content.ioc.exception.IoDCException;
     
   
@@ -96,97 +97,17 @@ public class ObjectContainer{
 	{ 
 		return geApptScopeObj(class1.getName());
 	}
-	
-	public Map<String, Object> getAppScopeControllerObj() 
-	{ 
-		return getMapObjectByAnnontation(Controller.class); 
-	}
-	
-	public Map<String, Object> getMapObjectByAnnontation(Class<? extends Annotation> annotation) 
-	{ 
-		Map<String, Object> mScopeControllerApp = new HashMap<>();
-	    Object obj;
-		for (Map.Entry<String, Object> entry : this.objectReferece.getAllAnnotationObj().entrySet())
-		{ 
-			obj = entry.getValue();
-			if(obj.getClass().isAnnotationPresent(annotation))
-				mScopeControllerApp.put(obj.getClass().getName(), obj);
-		}
-		
-		return mScopeControllerApp;
-	}
-	
+ 
 
 	public List<Object> getListObjectByAnnontation(Class<? extends Annotation> annotation) 
 	{ 
-		List<Object> objectList = new ArrayList<>();
-	    Object obj;
-		for (Map.Entry<String, Object> entry : this.objectReferece.getAllAnnotationObj().entrySet())
-		{ 
-			obj = entry.getValue();
-			if(obj.getClass().isAnnotationPresent(annotation))
-				objectList.add(obj);
-		}
-		return objectList;
+		return this.objectReferece.getObjectsByAnnotation(annotation);
 	}
  
-	
 	public List<Object> getListObjectByAnnontationAndInstance(Class<? extends Annotation> annotation, Class<?> classInstance) 
 	{ 
-		List<Object> objectList = new ArrayList<>();
-	    Object obj;
-		for (Map.Entry<String, Object> entry : this.objectReferece.getAllAnnotationObj().entrySet())
-		{ 
-			obj = entry.getValue();
-			if(obj.getClass().isAnnotationPresent(annotation) && classInstance.isInstance(obj) )
-				objectList.add(obj);
-		} 
-		return objectList;
-	}	
-	
-	
-  
-	public <E extends Annotation> List<E> getAnnontationByTypes(Class<E> annotation) 
-	{ 
-		List<E> annotations = new ArrayList<>();
-	    Object obj;
-		for (Map.Entry<String, Object> entry : this.objectReferece.getAllAnnotationObj().entrySet())
-		{ 
-			obj = entry.getValue();
-			if(obj.getClass().isAnnotationPresent(annotation)) {
-				annotations.add(obj.getClass().getAnnotation(annotation));
-				annotations.addAll(getAnnontationByTypes(obj, annotation));
-			}
-		}
-		
-		return annotations;
-	}
-	
-	public Object geApptScopeObjByInterface(Class<?> interfaceClass) 
-	{  
-	    Object obj = null;
-		for (Map.Entry<String, Object> entry : this.objectReferece.getAllAnnotationObj().entrySet())
-		{ 
-			obj = entry.getValue();
-			if(interfaceClass.isAssignableFrom(obj.getClass())) {
-				return obj;
-			} 
-		} 
-		return null;
+		return  this.objectReferece.getListObjectByAnnontationAndInstance(annotation, classInstance);
 	} 
-
-	private <E extends Annotation> List<E> getAnnontationByTypes(Object obj, Class<E> annotation) {
-		 
-		List<E> annotations = new ArrayList<>();
-		Method[] methods = obj.getClass().getMethods();
-		if(methods != null) {
-			for (int i = 0; i < methods.length; i++) {
-				if(methods.getClass().isAnnotationPresent(annotation))
-					annotations.add(obj.getClass().getAnnotation(annotation));
-			}
-		}
-		return annotations;
-	}
 
 	public String getPropertyValue(String key) {
 		return this.objectReferece.getProp().getProperty(key);
@@ -202,6 +123,26 @@ public class ObjectContainer{
     
 	public ApiMethodInfo getApiMehtodByKey(String key) {
 		return this.objectReferece.getApiMethod(key);
+	}
+	
+	public List<BeanMethodInfo> getBeansMethodByAnnotation(Class<? extends Annotation> annotation) {
+		List<Class<? extends Annotation>> list = new ArrayList<>();
+		list.add(annotation);
+		return getBeansMethodByAnnotations(list);
+	}
+	
+	public List<BeanMethodInfo> getBeansMethodByAnnotations(List<Class<? extends Annotation>> annotations) {
+		return this.objectReferece.getBeansMethodByAnnotations(annotations);
+	}
+	
+	public List<BeanFieldInfo> getBeanFieldInfoByAnnotation(Class<? extends Annotation> annotation) {
+		List<Class<? extends Annotation>> list = new ArrayList<>();
+		list.add(annotation);
+		return getBeanFieldInfoByAnnotations(list);
+	}
+	
+	public List<BeanFieldInfo> getBeanFieldInfoByAnnotations(List<Class<? extends Annotation>> annotations) {
+		return this.objectReferece.getBeansFieldByAnnotations(annotations);
 	}
 	
 	/**
@@ -232,13 +173,14 @@ public class ObjectContainer{
 		return this.objectReferece.getExceptions().contains(exception.getClass().getName());
 	}
 	
-	public Object getLimit(Class limitClass) {
+	public Object getLimit(Class<?> limitClass) {
 		
 		for (Object obj : this.objectReferece.getLimits()) {
 			if(obj.getClass().getName().equals(limitClass.getName())) return obj;
 		} 
 		return null;
 	}
+
 
 	 
 }

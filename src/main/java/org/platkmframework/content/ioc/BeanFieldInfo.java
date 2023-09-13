@@ -16,7 +16,9 @@
  * Contributors:
  * 	Eduardo Iglesias Taylor - initial API and implementation
  *******************************************************************************/
-package org.platkmframework.content.ioc.exception;
+package org.platkmframework.content.ioc;
+
+import java.lang.reflect.Field;
 
 
 /**
@@ -25,17 +27,33 @@ package org.platkmframework.content.ioc.exception;
  *   Contributors: 
  *   	Eduardo Iglesias - initial API and implementation
  **/
-public class IoDCException extends Exception {
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-
-	public IoDCException(String message) {
-		super(message); 
+public class BeanFieldInfo {
+	
+	private Field field; 
+	private Object obj;
+	
+	public BeanFieldInfo(Object obj, Field field) {
+		super();
+		this.field = field;
+		this.obj = obj;
+	}
+	
+	public Field getField() {
+		return field;
 	}
 
-	
-	
+
+	public void setField(Field field) {
+		this.field = field;
+	}
+
+
+	public Object getObj() {
+		return obj;
+	}
+
+	public void setObj(Object obj) {
+		this.obj = obj;
+	}
+
 }

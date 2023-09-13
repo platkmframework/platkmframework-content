@@ -16,26 +16,13 @@
  * Contributors:
  * 	Eduardo Iglesias Taylor - initial API and implementation
  *******************************************************************************/
-package org.platkmframework.content.ioc.exception;
+package org.platkmframework.content.ioc;
 
-
-/**
- *   Author: 
- *     Eduardo Iglesias
- *   Contributors: 
- *   	Eduardo Iglesias - initial API and implementation
- **/
-public class IoDCException extends Exception {
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-
-	public IoDCException(String message) {
-		super(message); 
-	}
-
+public interface ContentPropertiesConstant {
 	
-	
+	public static final String ORG_PLATKMFRAMEWORK_CONFIGURATION_CUSTOM_PROPERTIES_FILE = "org.platkmframework.configuration.custom.properties.file";
+
+	/** CUSTOM PACKAGE TO SEARCH FOR IvC**/
+	public static final String ORG_PLATKMFRAMEWORK_CONFIGURATION_PACKAGE_PREFIX	= "org.platkmframework.configuration.package.prefix";
+
 }
