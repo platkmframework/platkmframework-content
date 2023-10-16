@@ -22,12 +22,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger; 
+import org.platkmframework.content.ioc.ContentPropertiesConstant; 
 
 
 
@@ -41,8 +42,6 @@ import org.apache.logging.log4j.Logger;
  */
 public class ProjectContent {
 	
-	private static final Logger logger = LogManager.getLogger(ProjectContent.class);
-	
 	/**private static final Object C_PROPERTIES_FILE_PATH  	= "PROPERTIES_FILE_PATH";    
 	private static final String C_SYSTEM_EXCEPTION_CLASSES  = "SYSTEM_EXCEPTION_CLASSES";   
 	private static final String C_APPLICATION_ENVIRONMENT   = "APPLICATION_ENVIRONMENT";
@@ -55,11 +54,15 @@ public class ProjectContent {
 	//private Properties propertesFileInfo;  // resources properties of the system 
 	
 	Properties appProperties;
+	private List<Object> filters;
+	private List<Object> servlets;
 	
 	private ProjectContent()
 	{ 
-		//this.exceptions = new ArrayList<>();
 		appProperties   = new Properties();
+		filters  = new ArrayList<>();
+		servlets = new ArrayList<>();
+		//this.exceptions = new ArrayList<>();
 		//propertesFileInfo = new Properties(); 
 	}
 		
@@ -70,17 +73,119 @@ public class ProjectContent {
 		return projectContent;
 	}
 	
-	public void loadApplicationProperties() throws IOException {  
-		 
-		InputStream inputStream = this.getClass().getResourceAsStream("/application.properties");
-		if(inputStream == null) {
-			throw new IOException("application.properties file not found -> ");
-		}
-		appProperties.load(inputStream); 
+	public ProjectContent projectName(String projectName) {
+		appProperties.put(CorePropertyConstant.ORG_PLATKMFRAMEWORK_SERVER_APPNAME, projectName);
+		return this;
 	}
 	
-	public void loadApplicationProperties(String[] files)  throws IOException {  
-		 
+	public ProjectContent server(String server) {
+		appProperties.put(CorePropertyConstant.ORG_PLATKMFRAMEWORK_SERVER_NAME, server);
+		return this;
+	}
+ 
+	
+	public ProjectContent port(String port) {
+		appProperties.put(CorePropertyConstant.ORG_PLATKMFRAMEWORK_SERVER_PORT, port);
+		return this;
+	}
+	
+	public ProjectContent contentPath(String contentPath) {
+		appProperties.put(CorePropertyConstant.ORG_PLATKMFRAMEWORK_CONTENT_PATH, contentPath);
+		return this;
+	}
+	
+	public ProjectContent servletPath(String servletPath) {
+		appProperties.put(CorePropertyConstant.ORG_PLATKMFRAMEWORK_SERVLET_PLATH, servletPath);
+		return this;
+	}
+	
+	public ProjectContent publicPath(String publicPath) {
+		appProperties.put(CorePropertyConstant.ORG_PLATKMFRAMEWORK_SERVER_PUBLIC_PATH, publicPath);
+		return this;
+	}
+	
+	public ProjectContent stopKey(String stopKey) {
+		appProperties.put(CorePropertyConstant.ORG_PLATKMFRAMEWORK_SERVER_STOPKEY, stopKey);
+		return this;
+	}
+	
+	public ProjectContent corsOrigin(String origin) {
+		appProperties.put(CorePropertyConstant.System_Access_Control_Allow_Origin, origin);
+		return this;
+	}
+	
+	public ProjectContent corsMethod(String methods) {
+		appProperties.put(CorePropertyConstant.System_Access_Control_Allow_Methods, methods);
+		return this;
+	}
+	
+	public ProjectContent corsHeader(String header) {
+		appProperties.put(CorePropertyConstant.System_Access_Control_Allow_Headers, header);
+		return this;
+	}
+	
+	public ProjectContent IvD(String packages) {
+		appProperties.put(ContentPropertiesConstant.ORG_PLATKMFRAMEWORK_CONFIGURATION_PACKAGE_PREFIX, packages);
+		return this;
+	}
+	
+	public ProjectContent addPropertyFiles(String propertyfiles) {
+		
+		 if(StringUtils.isNotBlank(propertyfiles)){
+			 try {
+				loadApplicationProperties(propertyfiles.split(","));
+			} catch (IOException e) {
+				e.printStackTrace();
+				System.exit(-1);
+			}
+		}
+		return this;
+	}
+	
+	public ProjectContent datetimeFormat(String format) {
+		appProperties.put(CorePropertyConstant.ORG_PLATKMFRAMEWORK_FORMAT_DATETIME, format);
+		return this;
+	}
+	
+	public ProjectContent dateFormat(String format) {
+		appProperties.put(CorePropertyConstant.ORG_PLATKMFRAMEWORK_FORMAT_DATE, format);
+		return this;
+	}
+	
+	public ProjectContent timeFormat(String format) {
+		appProperties.put(CorePropertyConstant.ORG_PLATKMFRAMEWORK_FORMAT_TIME, format);
+		return this;
+	}
+	
+	public ProjectContent addFilter(Object filter) {
+		filters.add(filter);
+		return this;
+	}
+	
+	public List<Object> getFilters() {
+		return filters;
+	}
+	
+	public ProjectContent addServlet(Object servlet) {
+		servlets.add(servlet);
+		return this;
+	}
+	
+	public List<Object> getServlet() {
+		return servlets;
+	}
+
+	/**	public void loadApplicationProperties() throws IOException {  
+			 
+			InputStream inputStream = this.getClass().getResourceAsStream("/application.properties");
+			if(inputStream == null) {
+				throw new IOException("application.properties file not found -> ");
+			}
+			appProperties.load(inputStream); 
+		}
+	*/	
+	
+	private void loadApplicationProperties(String[] files)  throws IOException {  
 		if(files != null) {
 			Properties properties = new Properties();
 			InputStream inputStream;
@@ -108,10 +213,10 @@ public class ProjectContent {
 		return appProperties;
 	}
 
-	public void setAppProperties(Properties appProperties) {
+	/**public void setAppProperties(Properties appProperties) {
 		this.appProperties = appProperties;
 	}
-
+*/
 	public String parseValue(String value) {
 		if(StringUtils.isBlank(value)) return null;
 		
@@ -123,6 +228,11 @@ public class ProjectContent {
 
 	public String getProperty(String key) {
 		return appProperties.getProperty(key, "");
+	}
+	
+	public ProjectContent addProperty(String key, String value) {
+		getAppProperties().put(key, value);
+		return this;
 	}
 	
 	

@@ -22,15 +22,12 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import org.platkmframework.annotation.db.SearchFilter;
 import org.platkmframework.content.ioc.exception.IoDCException;
-    
-  
-
 
 /**
  *   Author: 
@@ -53,6 +50,7 @@ public class ObjectContainer{
 	
 	private static ObjectContainer objectContainer;
 	private ObjectReferece objectReferece;
+	
 
 	//private List<Class<?>> listScopeSession;
 	//private Map<String, Object> mInterface;
@@ -60,6 +58,7 @@ public class ObjectContainer{
 	private ObjectContainer()
 	{
 		objectReferece = new ObjectReferece();
+		
 		//mInterface = new HashMap<>();
 		//listScopeSession = new ArrayList<>();
 	}
@@ -108,6 +107,11 @@ public class ObjectContainer{
 	{ 
 		return  this.objectReferece.getListObjectByAnnontationAndInstance(annotation, classInstance);
 	} 
+	
+	public List<Object> getListObjectByInstance(Class<?> classInstance) 
+	{ 
+		return  this.objectReferece.getListObjectByInstance(classInstance);
+	} 
 
 	public String getPropertyValue(String key) {
 		return this.objectReferece.getProp().getProperty(key);
@@ -116,13 +120,31 @@ public class ObjectContainer{
 	public String getPropertyValue(String key, String defaultValue) {
 		return this.objectReferece.getProp().getProperty(key, defaultValue);
 	}
-	 
-	public Class<?> getEntityClassByCode(String code) {
-		return this.objectReferece.getEntity(code);
-	}
     
-	public ApiMethodInfo getApiMehtodByKey(String key) {
-		return this.objectReferece.getApiMethod(key);
+	public ApiMethodInfo getApiMethodInfo(String path) {
+		return objectReferece.getApiMethod().entrySet().stream().filter((e)->(path.startsWith(e.getKey()))).map(Map.Entry::getValue).findFirst().orElse(null);
+	}
+	
+	public List<Object> getControllers() {
+		
+		List<Object> list = new ArrayList<Object>();
+		Map<String, ApiMethodInfo> map = this.objectReferece.getApiMethod();
+		map.forEach((k,v)-> {
+			if(!list.contains(v.getContObject()))list.add(v.getContObject());
+		});
+		
+		return list;
+	}
+	
+	public List<Object> getControllersByAnnotation(Class<? extends Annotation> annotation) {
+		
+		List<Object> list = new ArrayList<Object>();
+		Map<String, ApiMethodInfo> map = this.objectReferece.getApiMethod();
+		map.forEach((k,v)-> {
+			if(!list.contains(v.getContObject()) && v.getContObject().getClass().isAnnotationPresent(annotation))list.add(v.getContObject());
+		});
+		
+		return list;
 	}
 	
 	public List<BeanMethodInfo> getBeansMethodByAnnotation(Class<? extends Annotation> annotation) {
@@ -156,13 +178,9 @@ public class ObjectContainer{
 		SearchClasses searchClasses = new SearchClasses();
 		return searchClasses.processController(mScopeApp, mInterface, listScopeSession); 
 	}*/
-
-	public Class<?> getFilterInfoClassByCode(String code) { 
-		return this.objectReferece.getmSearchFilters().get(code);
-	}
 	
-	public Collection<Class<?>> getEntities() {
-		return this.objectReferece.getEntities().values();
+	public List<Class<?>> getEntities() {
+		return this.objectReferece.getEntities();
 	}
 	
 	public void setException(String exceptionClass) { 
@@ -180,6 +198,11 @@ public class ObjectContainer{
 		} 
 		return null;
 	}
+
+	public SearchFilter getSearchMapInfo(String searchMapCode) { 
+		return this.objectReferece.getmSearchFilter().get(searchMapCode);
+	}
+ 
 
 
 	 

@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.lang3.StringUtils;
+import org.platkmframework.annotation.db.SearchFilter;
 
 
 /**
@@ -39,14 +40,14 @@ import org.apache.commons.lang3.StringUtils;
 public class ObjectReferece {
 	 
 	private Map<String, List<ObjectInfo>> allAnnotationObj;
-	private Map<String, Class<?>> mEntities;
-	private Map<String, Class<?>> mSearchFilters;
+	private List<Class<?>> entities;
 	private Map<String, ApiMethodInfo> apiMethod; //the key  is the api path
 	private Properties prop;
 	private List<String> exceptions;
 	private List<Object> limits;
 	private List<BeanMethodInfo> beanMethods;
 	private List<BeanFieldInfo> beanFields;
+	private Map<String, SearchFilter> mSearchFilter;
 	 
 	public ObjectReferece() {
 		super(); 
@@ -103,9 +104,22 @@ public class ObjectReferece {
 		return objectList;
 	}	
 	
+	public List<Object> getListObjectByInstance(Class<?> interfaceClass) 
+	{ 
+		List<Object> objectList = new ArrayList<>();
+		for (Map.Entry<String,  List<ObjectInfo> > entry : getAllAnnotationObj().entrySet())
+		{ 
+			for (ObjectInfo objInfo : entry.getValue()) {
+				if(interfaceClass.isInstance(objInfo) )
+					objectList.add(objInfo.getObj()); 
+			}
+		}
+		return objectList;
+	}	
 	
-	public void addApiInfo(String key, Object obj,  Method method, String[] roles) {  
-		getApiMethod().put(key, new ApiMethodInfo(obj, method, roles)); 
+	
+	public void addApiInfo(String api, Object obj,  Map<String, List<Method>>  methodMap) {  
+		getApiMethod().put(api, new ApiMethodInfo(obj, methodMap)); 
 	}
 	
 	public void addBeanMethod(Object obj, Method m) {
@@ -121,22 +135,22 @@ public class ObjectReferece {
 		return allAnnotationObj;
 	}
 	
-	public Map<String, Class<?>> getEntities() {
-		if(this.mEntities == null) this.mEntities = new HashMap<>();
-		return mEntities;
+	public List<Class<?>> getEntities() {
+		if(this.entities == null) this.entities = new ArrayList<>();
+		return entities;
 	}
 	
-	public void setEntities(Map<String, Class<?>> mEntities) {
-		this.mEntities = mEntities;
-	}
-	 
-	public Map<String, Class<?>> getmSearchFilters() {
-		if(this.mSearchFilters == null) this.mSearchFilters = new HashMap<>();
-		return mSearchFilters;
+	public void setEntities(List<Class<?>> entities) {
+		this.entities = entities;
+	} 
+	
+	public Map<String, SearchFilter> getmSearchFilter() {
+		if(this.mSearchFilter == null) this.mSearchFilter = new HashMap<>();
+		return mSearchFilter;
 	}
 
-	public void setmSearchFilters(Map<String, Class<?>> mSearchFilters) {
-		this.mSearchFilters = mSearchFilters;
+	public void setmSearchFilter(Map<String, SearchFilter> mSearchFilter) {
+		this.mSearchFilter = mSearchFilter;
 	}
 
 	public Map<String, ApiMethodInfo> getApiMethod() {
@@ -154,11 +168,7 @@ public class ObjectReferece {
 		if(this.beanFields == null) this.beanFields =  new ArrayList<>();
 		return beanFields;
 	}
- 
-	public Class<?> getEntity(String key) {
-		return getEntities().get(key); 
-	}
-	
+  
 	public Object getObject(String className) {
 		return getObject(className, null); 
 	}

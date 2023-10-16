@@ -33,17 +33,14 @@ import java.util.Optional;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import org.apache.commons.lang3.ArrayUtils;
+import javax.persistence.Entity;
+
 import org.apache.commons.lang3.StringUtils;
-import org.platkmframework.annotation.AfterStartUp;
 import org.platkmframework.annotation.Api;
-import org.platkmframework.annotation.ApplicationConfig;
 import org.platkmframework.annotation.AutoWired;
 import org.platkmframework.annotation.ClassMethod;
 import org.platkmframework.annotation.Component;
 import org.platkmframework.annotation.Controller;
-import org.platkmframework.annotation.CustomFilter;
-import org.platkmframework.annotation.CustomServlet;
 import org.platkmframework.annotation.Factory;
 import org.platkmframework.annotation.JBean;
 import org.platkmframework.annotation.PropertyFileInfo;
@@ -51,13 +48,12 @@ import org.platkmframework.annotation.Repository;
 import org.platkmframework.annotation.Service;
 import org.platkmframework.annotation.TruslyException;
 import org.platkmframework.annotation.db.DatabaseConfig;
-import org.platkmframework.annotation.db.SearchFilterInfo;
+import org.platkmframework.annotation.db.SearchFilter;
+import org.platkmframework.annotation.db.SearchFilters;
 import org.platkmframework.annotation.db.SystemColumnValue;
-import org.platkmframework.annotation.db.TableInfo;
 import org.platkmframework.annotation.limit.ApplicationLimit;
 import org.platkmframework.annotation.rmi.RMIServer;
 import org.platkmframework.annotation.security.SecurityCofing;
-import org.platkmframework.annotation.security.SecurityRole;
 import org.platkmframework.annotation.timer.TimerFixeDelayScheduler;
 import org.platkmframework.annotation.timer.TimerFixeRateScheduler;
 import org.platkmframework.annotation.timer.TimerScheduler;
@@ -309,11 +305,11 @@ public class SearchClasses implements IoDProcess
 		   class1.isAnnotationPresent(Api.class) || 
 		   class1.isAnnotationPresent(Controller.class)|| 
 		   class1.isAnnotationPresent(Repository.class)|| 
-		   class1.isAnnotationPresent(CustomServlet.class)|| 
-		   class1.isAnnotationPresent(CustomFilter.class)|| 
 		   class1.isAnnotationPresent(RMIServer.class)|| 
 		   class1.isAnnotationPresent(SecurityCofing.class)|| 
 		   class1.isAnnotationPresent(DatabaseConfig.class)){
+			
+			_processSearchOptionMapping(objectReferece, class1);
 			
 			if(!_hasCosntructorParam(class1,listPendingClass)){ 
 				Object ob = ReflectionUtil.createInstance(class1);
@@ -326,12 +322,11 @@ public class SearchClasses implements IoDProcess
 				
 				generalProcess(ob,mField,objectReferece,mInterface);	 
 				_processInfoFromObjectMethod(ob, mField, objectReferece, mInterface);
-				
 			}
 		}else{
 			
-			if(class1.isAnnotationPresent(TableInfo.class)) {
-				objectReferece.getEntities().put(class1.getAnnotation(TableInfo.class).code(), class1);
+			if(class1.isAnnotationPresent(Entity.class)) {
+				objectReferece.getEntities().add(class1);
 			}
 			
 			if(class1.isAnnotationPresent(ApplicationLimit.class)) { 
@@ -341,20 +336,25 @@ public class SearchClasses implements IoDProcess
 				} 
 			}
 			
-			if(class1.isAnnotationPresent(SearchFilterInfo.class)) {
-				objectReferece.getmSearchFilters().put(class1.getAnnotation(SearchFilterInfo.class).code(), class1);
-			}
-			
 			if(class1.isAnnotationPresent(TruslyException.class)) {
 				objectReferece.getExceptions().add(class1.getName());
 			}
 		} 
 		
-		if(class1.isAnnotationPresent(ApplicationConfig.class)){
+		/**if(class1.isAnnotationPresent(ApplicationConfig.class)){
 			findMethodsToExecute(class1, methods);
-		}
+		}*/
 	}
 	
+	private void _processSearchOptionMapping(ObjectReferece objectReferece, Class<?> class1) {
+		if(class1.isAnnotationPresent(SearchFilters.class)) {
+			SearchFilters searchFilters = class1.getAnnotation(SearchFilters.class);
+			for (SearchFilter searchFilter : searchFilters.searchFilters()) {
+				objectReferece.getmSearchFilter().put(searchFilter.code(), searchFilter);
+			}
+		}
+	}
+
 	private void _processInfoFromObjectMethod(Object ob, Map<Field, List<Object>> mField, ObjectReferece objectReferece, Map<String, Object> mInterface) throws InvocationException, IllegalArgumentException, IoDCException {
 		try {
 			Method[] methods = ob.getClass().getMethods();
@@ -364,7 +364,7 @@ public class SearchClasses implements IoDProcess
 				for (int i = 0; i < methods.length; i++){
 					method = methods[i]; 
 					if(method.isAnnotationPresent(JBean.class)){
-						beanObj = method.invoke(ob, null);
+						beanObj = method.invoke(ob);
 						objectReferece.addObject(method.getAnnotation(JBean.class).name(),  beanObj);
 						generalProcess(beanObj, mField, objectReferece, mInterface);
 					}
@@ -386,36 +386,34 @@ public class SearchClasses implements IoDProcess
 	private void processApiKey(ObjectReferece objectReferece, Object ob) {
 		
 		Method[] methods = ob.getClass().getMethods();
-		if(methods != null) {
+		if(methods != null && methods.length > 0) {
 			Method method;
 			ClassMethod classMethod; 
-			String key = "";
-			String[] roles = new String[] {};
 			Api api = ob.getClass().getAnnotation(Api.class);
+			String key = api.path();
 			
-			if(ob.getClass().isAnnotationPresent(SecurityRole.class) &&
-					ob.getClass().getAnnotation(SecurityRole.class).name() != null){
-				roles = ArrayUtils.addAll(roles, ob.getClass().getAnnotation(SecurityRole.class).name());
-			}
+			Map<String, List<Method>> mapMethod = new HashMap<>();
 			
 			for (int i = 0; i < methods.length; i++) {
 				method = methods[i];
-				if(method.isAnnotationPresent(ClassMethod.class)) {
+				if(method.isAnnotationPresent(ClassMethod.class)){
 					classMethod = method.getAnnotation(ClassMethod.class);
-					key =  "{" + classMethod.method().name() + ":" +  api.path() + "/" + classMethod.name() + "}";
 					
-					if(method.isAnnotationPresent(SecurityRole.class) &&
-							method.getAnnotation(SecurityRole.class).name() != null){
-						roles = ArrayUtils.addAll(roles, method.getAnnotation(SecurityRole.class).name());
+					if(!mapMethod.containsKey(classMethod.method().name())) {
+						mapMethod.put(classMethod.method().name(), new ArrayList<>());
 					}
-					objectReferece.addApiInfo(key, ob, method, roles);  
+					 
+					mapMethod.get(classMethod.method().name()).add(method);
 				}
 			}
+			objectReferece.addApiInfo(key, ob, mapMethod);  
 		}
 	}
 
 
-	private void findMethodsToExecute(Class<?> class1, Map<Object, List<Method>> methods) throws InvocationException {
+/**	
+ * @TODO AfterStartup
+ * private void findMethodsToExecute(Class<?> class1, Map<Object, List<Method>> methods) throws InvocationException {
 		Object ob = ReflectionUtil.createInstance(class1); 
 		List<Method> list = new  ArrayList<>();
 		for (Method method : ob.getClass().getMethods()) {
@@ -427,7 +425,7 @@ public class SearchClasses implements IoDProcess
 			methods.put(ob, list);
 		}
 	}
-
+*/
 
 	private boolean isServicesAndActiveChecked(Class<?> class1, ObjectReferece objectReferece) {
 		

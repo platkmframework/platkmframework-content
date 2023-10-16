@@ -2,7 +2,23 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.platkmframework</groupId>
   <artifactId>platkmframework-content</artifactId>
-  <version>0.1.0-alpha</version>
+  <version>1.0.0-beta</version>
+  
+ 	<distributionManagement>
+		<repository>
+			<id>platkmframework</id>
+			<name>Releases</name>
+			<url>https://nexus.platkmframework.io/repository/platkmframework-releases/</url>
+		</repository>
+	 
+		<snapshotRepository>
+			<id>platkmframework</id>
+			<name>Snapshot</name>
+			<url>https://nexus.platkmframework.io/repository/platkmframework-snapshot/</url>
+		</snapshotRepository>
+	
+	</distributionManagement>
+	
   <build> 
     <plugins>
       <plugin>
@@ -36,12 +52,12 @@
    	<dependency>
   		<groupId>org.platkmframework</groupId>
   		<artifactId>platkmframework-util</artifactId>
-  		<version>0.1.0-alpha</version>
+  		<version>1.0.0-beta</version>
   	</dependency>
    	<dependency>
   		<groupId>org.platkmframework</groupId>
   		<artifactId>platkmframework-annotation</artifactId>
-  		<version>0.1.0-alpha</version>
+  		<version>1.0.0-beta</version>
   	</dependency>
   	<dependency>
   		<groupId>commons-beanutils</groupId>
@@ -84,5 +100,10 @@
 	    <artifactId>log4j-api</artifactId>
 	    <version>2.17.0</version>
 	</dependency>
+	<dependency>
+	    <groupId>javax.persistence</groupId>
+	    <artifactId>javax.persistence-api</artifactId>
+	    <version>2.2</version>
+	</dependency> 
   </dependencies>
 </project>
