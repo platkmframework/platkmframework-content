@@ -22,8 +22,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -42,6 +44,7 @@ import org.platkmframework.annotation.ClassMethod;
 import org.platkmframework.annotation.Component;
 import org.platkmframework.annotation.Controller;
 import org.platkmframework.annotation.Factory;
+import org.platkmframework.annotation.HttpRest;
 import org.platkmframework.annotation.JBean;
 import org.platkmframework.annotation.PropertyFileInfo;
 import org.platkmframework.annotation.Repository;
@@ -286,7 +289,8 @@ public class SearchClasses implements IoDProcess
 		
 		if( packagesPrefix != null && StringUtils.isNotBlank(classNamePackage)) { 
 			for (int i = 0; i < packagesPrefix.length; i++) {
-				if(classNamePackage.startsWith(packagesPrefix[i])) return true;
+				if(classNamePackage.startsWith(packagesPrefix[i].trim()))
+					return true;
 			}
 		} 
 		return false;
@@ -307,12 +311,32 @@ public class SearchClasses implements IoDProcess
 		   class1.isAnnotationPresent(Repository.class)|| 
 		   class1.isAnnotationPresent(RMIServer.class)|| 
 		   class1.isAnnotationPresent(SecurityCofing.class)|| 
-		   class1.isAnnotationPresent(DatabaseConfig.class)){
+		   class1.isAnnotationPresent(DatabaseConfig.class)||
+		   class1.isAnnotationPresent(HttpRest.class)
+		   ){
 			
 			_processSearchOptionMapping(objectReferece, class1);
 			
-			if(!_hasCosntructorParam(class1,listPendingClass)){ 
-				Object ob = ReflectionUtil.createInstance(class1);
+			if(!_hasCosntructorParam(class1,listPendingClass)){
+				
+				Object ob;
+				if(class1.isAnnotationPresent(HttpRest.class)) {
+					
+					ob = Proxy.newProxyInstance(
+							  this.getClass().getClassLoader(), 
+							  new Class<?>[] { class1 }, 
+							  new InvocationHandler() { 
+								@Override
+								public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+									 System.out.print(method.getName());
+									return null;
+								}
+							  } 
+						);
+				}else {
+					ob = ReflectionUtil.createInstance(class1);
+				}
+					
 				
 				if(class1.isAnnotationPresent(Api.class)) {
 					processApiKey(objectReferece, ob);

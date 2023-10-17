@@ -157,6 +157,11 @@ public class ProjectContent {
 		return this;
 	}
 	
+	public ProjectContent add(String key, Object obj) {
+		appProperties.put(key, obj);
+		return this;
+	}
+	
 	public ProjectContent addFilter(Object filter) {
 		filters.add(filter);
 		return this;
