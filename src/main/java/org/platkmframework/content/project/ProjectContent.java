@@ -28,7 +28,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.lang3.StringUtils;
-import org.platkmframework.content.ioc.ContentPropertiesConstant; 
+import org.platkmframework.content.init.BootInitializer; 
 
 
 
@@ -46,6 +46,10 @@ public class ProjectContent {
 	private static final String C_SYSTEM_EXCEPTION_CLASSES  = "SYSTEM_EXCEPTION_CLASSES";   
 	private static final String C_APPLICATION_ENVIRONMENT   = "APPLICATION_ENVIRONMENT";
 */
+	
+	private static final String C_DEFAULT_PROTOCOL		= "http";
+	private static final String C_DEFAULT_SERVERNAME	= "localhost";
+	
 	private static ProjectContent projectContent;
 	
 	//private Map<String, String> appProperties; //properties from the web.xml
@@ -56,14 +60,19 @@ public class ProjectContent {
 	Properties appProperties;
 	private List<Object> filters;
 	private List<Object> servlets;
+	private List<BootInitializer> initializer;
 	
 	private ProjectContent()
 	{ 
-		appProperties   = new Properties();
-		filters  = new ArrayList<>();
-		servlets = new ArrayList<>();
+		appProperties = new Properties();
+		filters       = new ArrayList<>();
+		servlets      = new ArrayList<>();
+		initializer   = new ArrayList<>();
 		//this.exceptions = new ArrayList<>();
 		//propertesFileInfo = new Properties(); 
+		
+		appProperties.put(CorePropertyConstant.ORG_PLATKMFRAMEWORK_SERVER_PROTOCOL, C_DEFAULT_PROTOCOL);
+		appProperties.put(CorePropertyConstant.ORG_PLATKMFRAMEWORK_SERVER_APPNAME, C_DEFAULT_SERVERNAME);
 	}
 		
 	public static ProjectContent instance()
@@ -78,6 +87,11 @@ public class ProjectContent {
 		return this;
 	}
 	
+	public ProjectContent protocol(String protocol) {
+		appProperties.put(CorePropertyConstant.ORG_PLATKMFRAMEWORK_SERVER_PROTOCOL, protocol);
+		return this;
+	}
+	
 	public ProjectContent server(String server) {
 		appProperties.put(CorePropertyConstant.ORG_PLATKMFRAMEWORK_SERVER_NAME, server);
 		return this;
@@ -89,7 +103,12 @@ public class ProjectContent {
 		return this;
 	}
 	
-	public ProjectContent contentPath(String contentPath) {
+	public ProjectContent webSocketPort(String port){
+		appProperties.put(ContentPropertiesConstant.ORG_PLATKMFRAMEWORK_WEBSOKET_SERVER_PORT, port);
+		return this;
+	}
+	
+	public ProjectContent contentPath(String contentPath){
 		appProperties.put(CorePropertyConstant.ORG_PLATKMFRAMEWORK_CONTENT_PATH, contentPath);
 		return this;
 	}
@@ -129,6 +148,16 @@ public class ProjectContent {
 		return this;
 	}
 	
+	public ProjectContent index(String indexPage) {
+		appProperties.put(CorePropertyConstant.ORG_PLATKMFRAMEWORK_CONFIGURATION_INDEX_PAGE, indexPage);
+		return this;
+	}
+	
+	public ProjectContent addInitializer(BootInitializer gPABootInitializer) {
+		initializer.add(gPABootInitializer); 
+		return this;
+	}
+	
 	public ProjectContent addPropertyFiles(String propertyfiles) {
 		
 		 if(StringUtils.isNotBlank(propertyfiles)){
@@ -142,20 +171,39 @@ public class ProjectContent {
 		return this;
 	}
 	
+
+	
 	public ProjectContent datetimeFormat(String format) {
-		appProperties.put(CorePropertyConstant.ORG_PLATKMFRAMEWORK_FORMAT_DATETIME, format);
+		appProperties.put(ContentPropertiesConstant.ORG_PLATKMFRAMEWORK_FORMAT_DATETIME, format);
 		return this;
 	}
 	
 	public ProjectContent dateFormat(String format) {
-		appProperties.put(CorePropertyConstant.ORG_PLATKMFRAMEWORK_FORMAT_DATE, format);
+		appProperties.put(ContentPropertiesConstant.ORG_PLATKMFRAMEWORK_FORMAT_DATE, format);
 		return this;
 	}
 	
 	public ProjectContent timeFormat(String format) {
-		appProperties.put(CorePropertyConstant.ORG_PLATKMFRAMEWORK_FORMAT_TIME, format);
+		appProperties.put(ContentPropertiesConstant.ORG_PLATKMFRAMEWORK_FORMAT_TIME, format);
 		return this;
 	}
+	
+	public String getDateTimeFormat() {
+		return appProperties.getOrDefault(ContentPropertiesConstant.ORG_PLATKMFRAMEWORK_FORMAT_DATETIME, ContentPropertiesConstant.ORG_PLATKMFRAMEWORK_JDBC_FORMAT_DATE_TIME_DEFAULT).toString();
+	}
+	
+	public String getDateFormat() {
+		return appProperties.getOrDefault(ContentPropertiesConstant.ORG_PLATKMFRAMEWORK_FORMAT_DATE, ContentPropertiesConstant.ORG_PLATKMFRAMEWORK_JDBC_FORMAT_DATE_DEFAULT).toString();
+	}
+	
+	public String getTimeFormat() {
+		return appProperties.getOrDefault(ContentPropertiesConstant.ORG_PLATKMFRAMEWORK_FORMAT_TIME, ContentPropertiesConstant.ORG_PLATKMFRAMEWORK_JDBC_FORMAT_TIME_DEFAULT).toString();
+	}
+	
+	public String getProjectName() {
+		return appProperties.getOrDefault(CorePropertyConstant.ORG_PLATKMFRAMEWORK_SERVER_APPNAME, "").toString();
+	}
+	
 	
 	public ProjectContent add(String key, Object obj) {
 		appProperties.put(key, obj);
@@ -178,6 +226,10 @@ public class ProjectContent {
 	
 	public List<Object> getServlet() {
 		return servlets;
+	}
+	
+	public Object get(String key) {
+		return appProperties.get(key);
 	}
 
 	/**	public void loadApplicationProperties() throws IOException {  
@@ -239,8 +291,11 @@ public class ProjectContent {
 		getAppProperties().put(key, value);
 		return this;
 	}
-	
-	
+
+	public List<BootInitializer> getInitializer() {
+		return initializer;
+	}
+
 	
 	/**public void init(ServletContextEvent servletContextEvent) throws Exception {
 		  

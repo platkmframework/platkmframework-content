@@ -16,18 +16,15 @@
  * Contributors:
  * 	Eduardo Iglesias Taylor - initial API and implementation
  *******************************************************************************/
-package org.platkmframework.content.ioc;
+package org.platkmframework.content;
     
 import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Properties;
 
-import org.platkmframework.annotation.db.SearchFilter;
-import org.platkmframework.content.ioc.exception.IoDCException;
+import org.platkmframework.doi.data.BeanFieldInfo;
+import org.platkmframework.doi.data.BeanMethodInfo;
+import org.platkmframework.doi.data.ObjectReferece; 
 
 /**
  *   Author: 
@@ -57,7 +54,7 @@ public class ObjectContainer{
 	
 	private ObjectContainer()
 	{
-		objectReferece = new ObjectReferece();
+		
 		
 		//mInterface = new HashMap<>();
 		//listScopeSession = new ArrayList<>();
@@ -71,33 +68,19 @@ public class ObjectContainer{
 		return objectContainer;
 	}
 	
+	public void setReference(ObjectReferece ref) {
+		objectReferece = ref;
+	}
+	
 	public Object geApptScopeObj(String key)
 	{
 		return this.objectReferece.getObject(key);
-	}
-
-	public void process(String packageNames, String[] packagesPrefix, Properties prop, IoDProcess ioDProcess) throws IoDCException 
-	{
-		this.objectReferece.setProp(prop); 
-		Map<Object, List<Method>> methods = ioDProcess.process(packageNames, packagesPrefix, this.objectReferece); 
-		methods.forEach((o,l)-> {
-			l.forEach(m->{
-				try {
-					m.invoke(o, new Object[]{}); 
-				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-					e.printStackTrace();
-					System.out.print(-1);
-				}
-			});
-		});
 	}
 
 	public Object geApptScopeObj(Class<?> class1) 
 	{ 
 		return geApptScopeObj(class1.getName());
 	}
- 
-
 	public List<Object> getListObjectByAnnontation(Class<? extends Annotation> annotation) 
 	{ 
 		return this.objectReferece.getObjectsByAnnotation(annotation);
@@ -121,31 +104,30 @@ public class ObjectContainer{
 		return this.objectReferece.getProp().getProperty(key, defaultValue);
 	}
     
-	public ApiMethodInfo getApiMethodInfo(String path) {
-		return objectReferece.getApiMethod().entrySet().stream().filter((e)->(path.startsWith(e.getKey()))).map(Map.Entry::getValue).findFirst().orElse(null);
+	public String getApiControllerInfo(String path){
+		return objectReferece.getApiMethod().get(path);
 	}
 	
-	public List<Object> getControllers() {
-		
-		List<Object> list = new ArrayList<Object>();
-		Map<String, ApiMethodInfo> map = this.objectReferece.getApiMethod();
-		map.forEach((k,v)-> {
-			if(!list.contains(v.getContObject()))list.add(v.getContObject());
-		});
-		
-		return list;
+	public List<String> getApiPathVariable(String pathVariable){
+		 return objectReferece.getPathVarialbeApiMethod().get(pathVariable);
 	}
 	
-	public List<Object> getControllersByAnnotation(Class<? extends Annotation> annotation) {
-		
-		List<Object> list = new ArrayList<Object>();
-		Map<String, ApiMethodInfo> map = this.objectReferece.getApiMethod();
-		map.forEach((k,v)-> {
-			if(!list.contains(v.getContObject()) && v.getContObject().getClass().isAnnotationPresent(annotation))list.add(v.getContObject());
-		});
-		
-		return list;
+	public Object getController(String controllerClassName) {
+		return objectReferece.getController(controllerClassName);
 	}
+	
+	/*
+	 * public List<Object> getControllersByAnnotation(Class<? extends Annotation>
+	 * annotation) {
+	 * 
+	 * List<Object> list = new ArrayList<Object>(); Map<String, ApiMethodInfo> map =
+	 * this.objectReferece.getApiMethod(); map.forEach((k,v)-> {
+	 * if(!list.contains(v.getContObject()) &&
+	 * v.getContObject().getClass().isAnnotationPresent(annotation))list.add(v.
+	 * getContObject()); });
+	 * 
+	 * return list; }
+	 */
 	
 	public List<BeanMethodInfo> getBeansMethodByAnnotation(Class<? extends Annotation> annotation) {
 		List<Class<? extends Annotation>> list = new ArrayList<>();
@@ -155,6 +137,10 @@ public class ObjectContainer{
 	
 	public List<BeanMethodInfo> getBeansMethodByAnnotations(List<Class<? extends Annotation>> annotations) {
 		return this.objectReferece.getBeansMethodByAnnotations(annotations);
+	}
+	
+	public Object getObjectByKey(String key) {
+		return this.objectReferece.getObject(key);
 	}
 	
 	public List<BeanFieldInfo> getBeanFieldInfoByAnnotation(Class<? extends Annotation> annotation) {
@@ -177,12 +163,12 @@ public class ObjectContainer{
 	{
 		SearchClasses searchClasses = new SearchClasses();
 		return searchClasses.processController(mScopeApp, mInterface, listScopeSession); 
-	}*/
+	}
 	
 	public List<Class<?>> getEntities() {
 		return this.objectReferece.getEntities();
 	}
-	
+	*/
 	public void setException(String exceptionClass) { 
 		this.objectReferece.getExceptions().add(exceptionClass);
 	}
@@ -199,11 +185,14 @@ public class ObjectContainer{
 		return null;
 	}
 
-	public SearchFilter getSearchMapInfo(String searchMapCode) { 
-		return this.objectReferece.getmSearchFilter().get(searchMapCode);
+	public Object getSearchMapInfo(String code) { 
+		return this.objectReferece.getSearchFilter().get(code);
 	}
- 
-
-
-	 
+	public List<Object> getFunctionals() { 
+		return objectReferece.getFunctionals();
+	}
+	
+	public Object getCustomInfoByKey(String key) {
+		return objectReferece.getCustomInfo().get(key);
+	}
 }

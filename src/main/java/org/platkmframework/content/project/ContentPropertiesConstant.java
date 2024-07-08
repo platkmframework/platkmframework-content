@@ -16,7 +16,7 @@
  * Contributors:
  * 	Eduardo Iglesias Taylor - initial API and implementation
  *******************************************************************************/
-package org.platkmframework.content.ioc;
+package org.platkmframework.content.project;
 
 public interface ContentPropertiesConstant {
 	
@@ -25,4 +25,18 @@ public interface ContentPropertiesConstant {
 	/** CUSTOM PACKAGE TO SEARCH FOR IvC**/
 	public static final String ORG_PLATKMFRAMEWORK_CONFIGURATION_PACKAGE_PREFIX	= "org.platkmframework.configuration.package.prefix";
 
+	/** date format**/
+	public static final String ORG_PLATKMFRAMEWORK_FORMAT_DATETIME	= "org.platkmframework.format.datetime";
+	public static final String ORG_PLATKMFRAMEWORK_FORMAT_DATE		= "org.platkmframework.format.date";
+	public static final String ORG_PLATKMFRAMEWORK_FORMAT_TIME		= "org.platkmframework.format.time";
+	
+	/** default format*/
+	public static final String ORG_PLATKMFRAMEWORK_JDBC_FORMAT_DATE_TIME_DEFAULT = "yyyy-MM-dd-HH-mm-ss";
+	public static final String ORG_PLATKMFRAMEWORK_JDBC_FORMAT_DATE_DEFAULT 	 = "yyyy-MM-dd";
+	public static final String ORG_PLATKMFRAMEWORK_JDBC_FORMAT_TIME_DEFAULT 	 = "HH-mm-ss";
+	
+	/** websocket **/
+	public static final String ORG_PLATKMFRAMEWORK_WEBSOKET_SERVER_PORT = "org.platkmframework.websocket.server.port";
+	
+	
 }
